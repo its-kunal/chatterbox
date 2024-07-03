@@ -3,6 +3,7 @@ import { verify } from "jsonwebtoken";
 import dotenv from "dotenv";
 import sendMessage from "@/events/send_message";
 import recieveMessage from "@/events/recieve_message";
+import { auth } from "@/firebase";
 
 dotenv.config();
 
@@ -14,16 +15,18 @@ const socketHandler = async (io: Server) => {
       sendMessage(io, socket, data);
     });
   });
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const error = new Error("not authorized");
     if (socket.handshake.headers.authorization) {
       const token = socket.handshake.headers.authorization.split(" ")[1];
-      verify(token, SECRET, (err, decoded) => {
-        if (err) next(error);
-        // @ts-ignore
-        else socket.handshake.headers.username = decoded.username;
+      try {
+        const decodedToken = await auth.verifyIdToken(token);
+        const user = await auth.getUser(decodedToken.uid);
+        socket.handshake.headers.username = user.displayName;
         next();
-      });
+      } catch (err) {
+        next(error);
+      }
     } else {
       next(error);
     }

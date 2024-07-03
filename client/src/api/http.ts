@@ -15,18 +15,18 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const authToken = localStorage.getItem("auth_token");
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
     }
     return config;
   },
   (error) => {
+    if (error.response.status === 403) {
+      localStorage.removeItem("token");
+      window.location.href = "/auth";
+    }
     return Promise.reject(error);
-    // if (error.response.status === 403) {
-    //   localStorage.removeItem("token");
-    //   window.location.href = "/auth";
-    // }
   }
 );
 
@@ -37,7 +37,7 @@ axiosInstance.interceptors.response.use(
   (err) => {
     console.log("Hello");
     if (err.response.status === 403) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("auth_token");
       window.location.href = "/auth";
     }
     return Promise.reject(err);
@@ -83,7 +83,7 @@ async function lastChats() {
   return data;
 }
 
-async function deleteChats(){
+async function deleteChats() {
   const { data } = await axiosInstance.get("/del123");
   return data;
 }

@@ -2,6 +2,7 @@ import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { Chat, lastChats } from "../../api/http";
 import {
   Box,
+  Container,
   Divider,
   IconButton,
   InputBase,
@@ -16,6 +17,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import socket from "../../api/socket";
 import SendIcon from "@mui/icons-material/Send";
 import React from "react";
+import LogoutFn from "../../components/form/logout";
 
 dayjs.extend(relativeTime);
 
@@ -103,7 +105,19 @@ export default function ChatScreen() {
   };
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center" }}>
+    <Container
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        flexDirection: "column",
+        rowGap: 2,
+        alignItems: "center",
+      }}
+      maxWidth={"sm"}
+    >
+      <Container maxWidth="xs">
+        <LogoutFn />
+      </Container>
       <Paper
         sx={{
           display: "flex",
@@ -169,6 +183,6 @@ export default function ChatScreen() {
           </Paper>
         </Box>
       </Paper>
-    </Box>
+    </Container>
   );
 }

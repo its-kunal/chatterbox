@@ -1,0 +1,2 @@
+- Implement Firebase Authentication
+- Implement Socket.io properly with react

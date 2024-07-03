@@ -3,18 +3,23 @@ import { useEffect } from "react";
 import Auth from "./screens/auth";
 import ChatScreen from "./screens/chat";
 import Delete from "./screens/delete";
+import { useFirebaseAuth } from "./firebase/authContext";
 
 function App() {
   const navigate = useNavigate();
+  const { loading, user } = useFirebaseAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token === null) {
-      navigate("/auth");
-    } else {
-      navigate("/chat");
+    if (!loading) {
+      if (user) {
+        navigate("/chat");
+      } else {
+        navigate("/auth");
+      }
     }
-  }, [navigate]);
+  }, [navigate, user, loading]);
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <Routes>
