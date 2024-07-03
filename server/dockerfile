@@ -1,0 +1,12 @@
+FROM node:20.15.0-alpine3.20 as Builder
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM node:20.15.0-alpine3.20
+WORKDIR /app
+COPY --from=Builder /app/dist/index.js /app/dist/index.js
+COPY --from=Builder /app/package.json .
+CMD ["npm", "run", "serve"]
