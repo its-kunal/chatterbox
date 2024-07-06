@@ -1,5 +1,5 @@
 import { Paper, Typography, Box, TextField, Button } from "@mui/material";
-import React, { ReactEventHandler, useCallback, useRef } from "react";
+import { ReactEventHandler, useCallback, useRef } from "react";
 import { loginUser } from "../../api/http";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +13,9 @@ export default function Login() {
         const message = await loginUser(e);
         alert(message);
         navigate("/chat");
-      } catch (_err: unknown) { /* empty */ }
+      } catch (_err: unknown) {
+        /* empty */
+      }
     },
     [navigate]
   );

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import { auth } from "./config";
+import socket from "../api/socket";
 
 interface AuthContextType {
   user?: User;
@@ -32,6 +33,8 @@ export default function AuthContextProvider({
         setUser(user);
         const authToken = await user.getIdToken();
         localStorage.setItem("auth_token", authToken);
+        // @ts-ignore
+        socket.io.opts.extraHeaders["authorization"] = `Bearer ${authToken}`;
       } else {
         setUser(undefined);
         localStorage.removeItem("auth_token");

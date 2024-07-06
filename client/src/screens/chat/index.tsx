@@ -2,6 +2,7 @@ import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { Chat, lastChats } from "../../api/http";
 import {
   Box,
+  CircularProgress,
   Container,
   Divider,
   IconButton,
@@ -9,15 +10,13 @@ import {
   List,
   ListItem,
   ListItemText,
-  Paper,
-  Typography,
+  ListSubheader,
 } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import socket from "../../api/socket";
 import SendIcon from "@mui/icons-material/Send";
 import React from "react";
-import LogoutFn from "../../components/form/logout";
 
 dayjs.extend(relativeTime);
 
@@ -26,7 +25,7 @@ interface ChatUI extends Chat {
 }
 
 export default function ChatScreen() {
-  const [connection, setConnection] = useState(false);
+  const [isConnected, setIsConnected] = useState(socket.connected);
   const [chats, setChats] = useState<ChatUI[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -41,9 +40,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     socket.connect();
-    setConnection(true);
     socket.on("message:receive", messageRecieveHandler);
-
     const debounceCall = setTimeout(async () => {
       const data = await lastChats();
       const prevChats: ChatUI[] = data.map((v) => {
@@ -55,7 +52,6 @@ export default function ChatScreen() {
       });
       setChats(prevChats.reverse());
     }, 500);
-
     return () => {
       clearTimeout(debounceCall);
       socket.off("message:receive", messageRecieveHandler);
@@ -65,7 +61,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     listRef.current?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
-  }, [chats]);
+  }, [chats, isConnected]);
 
   useEffect(() => {
     const debounceTimeInterval = setInterval(() => {
@@ -85,104 +81,91 @@ export default function ChatScreen() {
 
   const submitHandler: ReactEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    if (!socket.connected) {
-      alert("Wait Connecting to server");
-      return;
-    }
     const message = e.currentTarget.message.value;
     if (message === "") {
       alert("Please enter a message");
       return;
     }
-    socket.connect();
-    setConnection(false);
     socket.emit("message:send", message);
     e.currentTarget.reset();
-    setConnection(true);
-    return () => {
-      socket.disconnect();
-    };
   };
 
-  return (
-    <Container
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        flexDirection: "column",
-        rowGap: 2,
-        alignItems: "center",
-      }}
-      maxWidth={"sm"}
-    >
-      <Container maxWidth="xs">
-        <LogoutFn />
-      </Container>
-      <Paper
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          pb: 2,
-        }}
-      >
+  useEffect(() => {
+    function onConnect() {
+      setIsConnected(true);
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, []);
+
+  return isConnected ? (
+    <Container sx={{ mx: "auto", px: 0, height: "100%" }}>
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <List ref={listRef} sx={{ flex: 1, overflowY: "auto", height: "80%" }}>
+          <ListSubheader>Chats</ListSubheader>
+          {chats.map((chat, idx) => {
+            return (
+              <React.Fragment key={idx}>
+                <ListItem key={idx}>
+                  <ListItemText
+                    primary={chat.data}
+                    secondary={chat.diff + " by " + chat.username}
+                  />
+                </ListItem>
+                <Divider />
+              </React.Fragment>
+            );
+          })}
+          <div ref={bottomRef} />
+        </List>
         <Box
           sx={(theme) => ({
-            backgroundColor: theme.palette.grey[100],
+            display: "flex",
+            my: 1,
+            bottom: 0,
+            backgroundColor: theme.palette.background.default,
+            justifyContent: "center",
             width: "100%",
-            py: 2,
+            position: "sticky",
+            py: 1,
           })}
         >
-          <Typography variant="h3" textAlign={"center"}>
-            Chatterbox{" "}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            height: 400,
-            overflow: "auto",
-            width: "100%",
-          }}
-        >
-          <List ref={listRef}>
-            {chats.map((chat, idx) => {
-              return (
-                <React.Fragment key={idx}>
-                  <ListItem key={idx}>
-                    <ListItemText
-                      primary={chat.data}
-                      secondary={chat.diff + " by " + chat.username}
-                    />
-                  </ListItem>
-                  <Divider />
-                </React.Fragment>
-              );
-            })}
-            <div ref={bottomRef} />
-          </List>
-        </Box>
-        <Box sx={{ display: "flex", mx: 2, mt: 1 }}>
-          <Paper
+          <Box
             component="form"
-            sx={{
+            sx={(theme) => ({
               pl: 2,
               display: "flex",
               justifyContent: "space-between",
               border: 1,
-            }}
+              borderRadius: theme.spacing(1),
+              py: 1,
+            })}
             onSubmit={submitHandler}
-            elevation={0}
           >
             <InputBase
               placeholder="Enter your message"
               name="message"
             ></InputBase>
-            <IconButton type="submit" sx={{ mr: 2 }} disabled={!connection}>
-              <SendIcon />
+            <IconButton type="submit" sx={{ mr: 2 }} disabled={!isConnected}>
+              <SendIcon color="primary" />
             </IconButton>
-          </Paper>
+          </Box>
         </Box>
-      </Paper>
+      </Box>
     </Container>
+  ) : (
+    <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
+      <CircularProgress />
+    </Box>
   );
 }
