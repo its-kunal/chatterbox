@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@langchain/core": "^0.2.14",
+    "@langchain/google-vertexai": "^0.0.19",
     "@types/jsonwebtoken": "^9.0.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -20,6 +22,7 @@
     "firebase-admin": "^12.2.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.2.8",
     "node-redis": "^0.1.7",
     "random-word-slugs": "^0.1.7",
     "redis": "^4.6.13",
@@ -35,6 +38,7 @@
     "concurrently": "^8.2.2",
     "nodemon": "^3.1.0",
     "rollup": "^4.17.2",
+    "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.4.5"
   }

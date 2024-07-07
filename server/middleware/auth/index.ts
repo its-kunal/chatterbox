@@ -1,11 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verify, JwtPayload } from "jsonwebtoken";
-import dotenv from "dotenv";
 import { auth } from "@/firebase";
-
-dotenv.config();
-
-const SECRET = process.env.SECRET!;
 
 const authMiddleware = async (
   req: Request,

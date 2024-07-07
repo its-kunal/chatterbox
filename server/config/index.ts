@@ -11,4 +11,6 @@ const SECRET = process.env.SECRET!;
 if (typeof PORT === undefined || typeof SECRET === undefined)
   throw new Error("Incorrect Environment Variables");
 
-export { PORT, USER, CHAT, SECRET };
+const CHATTERBOT = "Chatterbot";
+
+export { PORT, USER, CHAT, SECRET, CHATTERBOT };
