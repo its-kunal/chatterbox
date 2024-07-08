@@ -1,6 +1,7 @@
 import { ReactEventHandler, useEffect, useRef, useState } from "react";
 import { Chat, lastChats } from "../../api/http";
 import {
+  Autocomplete,
   Box,
   CircularProgress,
   Container,
@@ -9,14 +10,19 @@ import {
   InputBase,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
   ListSubheader,
+  Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import socket from "../../api/socket";
 import SendIcon from "@mui/icons-material/Send";
 import React from "react";
+import BotSVG from "../../assets/bot.svg";
+import { createAvatar } from "@dicebear/core";
+import { notionistsNeutral } from "@dicebear/collection";
 
 dayjs.extend(relativeTime);
 
@@ -26,6 +32,7 @@ interface ChatUI extends Chat {
 
 export default function ChatScreen() {
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [userCount, setUserCount] = useState(1);
   const [chats, setChats] = useState<ChatUI[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -38,9 +45,14 @@ export default function ChatScreen() {
     ]);
   };
 
+  const userCountHandler = (message: number) => {
+    setUserCount(message);
+  };
+
   useEffect(() => {
     socket.connect();
     socket.on("message:receive", messageRecieveHandler);
+    socket.on("users:count", userCountHandler);
     const debounceCall = setTimeout(async () => {
       const data = await lastChats();
       const prevChats: ChatUI[] = data.map((v) => {
@@ -72,7 +84,6 @@ export default function ChatScreen() {
         });
         return chats;
       });
-      console.log("hello");
     }, 2 * 60 * 1000);
     return () => {
       clearInterval(debounceTimeInterval);
@@ -109,25 +120,70 @@ export default function ChatScreen() {
   }, []);
 
   return isConnected ? (
-    <Container sx={{ mx: "auto", px: 0, height: "100%" }}>
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        <List ref={listRef} sx={{ flex: 1, overflowY: "auto", height: "80%" }}>
-          <ListSubheader>Chats</ListSubheader>
-          {chats.map((chat, idx) => {
-            return (
-              <React.Fragment key={idx}>
-                <ListItem key={idx}>
-                  <ListItemText
-                    primary={chat.data}
-                    secondary={chat.diff + " by " + chat.username}
-                  />
-                </ListItem>
-                <Divider />
-              </React.Fragment>
-            );
-          })}
-          <div ref={bottomRef} />
-        </List>
+    <>
+      <List ref={listRef} sx={{ flex: 1, overflowY: "auto" }}>
+        <ListSubheader>Chats</ListSubheader>
+        {chats.map((chat, idx) => {
+          return (
+            <React.Fragment key={idx}>
+              <ListItem key={idx}>
+                <ListItemIcon>
+                  {chat.username === "Chatterbot" ? (
+                    <img src={BotSVG} height={30} width={30} />
+                  ) : (
+                    (() => {
+                      const avatar = createAvatar(notionistsNeutral, {
+                        seed: chat.username,
+                      });
+                      const svg = avatar.toDataUri();
+                      return (
+                        <img
+                          src={svg}
+                          height={30}
+                          width={30}
+                          style={{
+                            border: "1px solid",
+                            borderRadius: "100%",
+                          }}
+                        />
+                      );
+                    })()
+                  )}
+                </ListItemIcon>
+
+                <ListItemText
+                  primary={chat.data}
+                  secondary={chat.diff + " by " + chat.username}
+                />
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          );
+        })}
+        <div ref={bottomRef} />
+      </List>
+      <Box sx={{ py: 1, borderTop: 1 }}>
+        <Container sx={{ maxWidth: 310 }}>
+          {userCount > 1 && (
+            <Typography
+              variant="caption"
+              color={"GrayText"}
+              sx={{ display: "flex", alignItems: "center", columnGap: 1 }}
+            >
+              <Box
+                component={"div"}
+                sx={(theme) => ({
+                  display: "inline-block",
+                  height: 12,
+                  width: 12,
+                  borderRadius: "100%",
+                  backgroundColor: theme.palette.success.main,
+                })}
+              ></Box>
+              Active Users: {userCount}
+            </Typography>
+          )}
+        </Container>
         <Box
           sx={(theme) => ({
             display: "flex",
@@ -136,7 +192,6 @@ export default function ChatScreen() {
             backgroundColor: theme.palette.background.default,
             justifyContent: "center",
             width: "100%",
-            position: "sticky",
             py: 1,
           })}
         >
@@ -146,23 +201,36 @@ export default function ChatScreen() {
               pl: 2,
               display: "flex",
               justifyContent: "space-between",
+              alignItems: "center",
               border: 1,
               borderRadius: theme.spacing(1),
               py: 1,
             })}
             onSubmit={submitHandler}
           >
-            <InputBase
-              placeholder="Enter your message"
-              name="message"
-            ></InputBase>
+            <Autocomplete
+              options={["Chatterbot:"]}
+              freeSolo
+              renderInput={(params) => {
+                const { InputLabelProps, InputProps, ...rest } = params;
+                return (
+                  <InputBase
+                    placeholder="Enter your message"
+                    name="message"
+                    {...params.InputProps}
+                    {...rest}
+                    sx={{ width: { xs: 210, md: 500 } }}
+                  />
+                );
+              }}
+            />
             <IconButton type="submit" sx={{ mr: 2 }} disabled={!isConnected}>
               <SendIcon color="primary" />
             </IconButton>
           </Box>
         </Box>
       </Box>
-    </Container>
+    </>
   ) : (
     <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
       <CircularProgress />

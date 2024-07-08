@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import sendMessage from "@/events/send_message";
 import recieveMessage from "@/events/recieve_message";
 import { auth } from "@/firebase";
+import { userCount } from "@/events/user_count";
 
 dotenv.config();
 
@@ -13,6 +14,10 @@ const socketHandler = async (io: Server) => {
   io.on("connection", async (socket) => {
     socket.on("message:send", (data) => {
       sendMessage(io, socket, data);
+    });
+    await userCount(io);
+    socket.on("disconnect", async () => {
+      await userCount(io);
     });
   });
   io.use(async (socket, next) => {

@@ -1,1 +1,0 @@
-import{u as t,r as a,j as s}from"./index-JbBb208D.js";import{d as r}from"./http-BzV3DRaZ.js";function n(){const e=t();return a.useEffect(()=>{r().then(()=>{e("/auth")})},[e]),s.jsx("div",{children:"Hey"})}export{n as default};

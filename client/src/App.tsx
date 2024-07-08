@@ -43,37 +43,36 @@ function App() {
         display: "flex",
         flexDirection: "column",
         maxHeight: "100vh",
+        height: "100vh",
       }}
     >
       <Appbar />
-      <Box sx={{ flex: 1, overflowY: "auto" }}>
-        <Routes>
-          <Route
-            path="/auth"
-            element={
-              <Suspense fallback={<Spinner />}>
-                <Auth />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/chat"
-            element={
-              <Suspense fallback={<Spinner />}>
-                <ChatScreen />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/del123"
-            element={
-              <Suspense fallback={<Spinner />}>
-                <Delete />
-              </Suspense>
-            }
-          />
-        </Routes>
-      </Box>
+      <Routes>
+        <Route
+          path="/auth"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <Auth />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <ChatScreen />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/del123"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <Delete />
+            </Suspense>
+          }
+        />
+      </Routes>
     </Box>
   );
 }
