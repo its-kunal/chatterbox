@@ -1,5 +1,6 @@
-import { ReactEventHandler, useEffect, useRef, useState } from "react";
-import { Chat, lastChats } from "../../api/http";
+import { thumbs } from "@dicebear/collection";
+import { createAvatar } from "@dicebear/core";
+import SendIcon from "@mui/icons-material/Send";
 import {
   Autocomplete,
   Box,
@@ -17,25 +18,42 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import LocalizedFormat from "dayjs/plugin/localizedFormat";
+import React, { ReactEventHandler, useEffect, useRef, useState } from "react";
+import { Chat, lastChats } from "../../api/http";
 import socket from "../../api/socket";
-import SendIcon from "@mui/icons-material/Send";
-import React from "react";
 import BotSVG from "../../assets/bot.svg";
-import { createAvatar } from "@dicebear/core";
-import { notionistsNeutral } from "@dicebear/collection";
 
 dayjs.extend(relativeTime);
+dayjs.extend(LocalizedFormat);
 
-interface ChatUI extends Chat {
-  diff: string;
+function MyListItemText({ chat }: { chat: Chat }) {
+  const [currentDiff, setCurrentDiff] = useState(dayjs(chat.timestamp).toNow());
+  useEffect(() => {
+    const myInterval = setInterval(() => {
+      setCurrentDiff(dayjs(chat.timestamp).toNow());
+    }, 1000 * 60 * 1);
+    return () => {
+      clearInterval(myInterval);
+    };
+  }, []);
+  return (
+    <ListItemText
+      title={dayjs(chat.timestamp).format("L LT")}
+      primary={chat.data}
+      secondary={currentDiff + " by " + chat.username}
+    />
+  );
 }
 
 export default function ChatScreen() {
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [userCount, setUserCount] = useState(1);
-  const [chats, setChats] = useState<ChatUI[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  const [message, setMessage] = useState<string>("");
 
   const messageRecieveHandler = (message: string) => {
     const chat = JSON.parse(message) as unknown as Chat;
@@ -55,10 +73,9 @@ export default function ChatScreen() {
     socket.on("users:count", userCountHandler);
     const debounceCall = setTimeout(async () => {
       const data = await lastChats();
-      const prevChats: ChatUI[] = data.map((v) => {
-        const c: ChatUI = {
+      const prevChats: Chat[] = data.map((v) => {
+        const c: Chat = {
           ...v,
-          diff: dayjs(v.timestamp).fromNow(),
         };
         return c;
       });
@@ -75,30 +92,15 @@ export default function ChatScreen() {
     listRef.current?.lastElementChild?.scrollIntoView({ behavior: "smooth" });
   }, [chats, isConnected]);
 
-  useEffect(() => {
-    const debounceTimeInterval = setInterval(() => {
-      setChats((prevChats) => {
-        const chats = prevChats.map((v) => {
-          v.diff = dayjs(v.timestamp).toNow();
-          return v;
-        });
-        return chats;
-      });
-    }, 2 * 60 * 1000);
-    return () => {
-      clearInterval(debounceTimeInterval);
-    };
-  }, []);
-
   const submitHandler: ReactEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    const message = e.currentTarget.message.value;
     if (message === "") {
       alert("Please enter a message");
       return;
     }
     socket.emit("message:send", message);
     e.currentTarget.reset();
+    setMessage("");
   };
 
   useEffect(() => {
@@ -127,12 +129,12 @@ export default function ChatScreen() {
           return (
             <React.Fragment key={idx}>
               <ListItem key={idx}>
-                <ListItemIcon>
+                <ListItemIcon title={chat.username}>
                   {chat.username === "Chatterbot" ? (
                     <img src={BotSVG} height={30} width={30} />
                   ) : (
                     (() => {
-                      const avatar = createAvatar(notionistsNeutral, {
+                      const avatar = createAvatar(thumbs, {
                         seed: chat.username,
                       });
                       const svg = avatar.toDataUri();
@@ -150,11 +152,7 @@ export default function ChatScreen() {
                     })()
                   )}
                 </ListItemIcon>
-
-                <ListItemText
-                  primary={chat.data}
-                  secondary={chat.diff + " by " + chat.username}
-                />
+                <MyListItemText chat={chat} />
               </ListItem>
               <Divider />
             </React.Fragment>
@@ -209,6 +207,10 @@ export default function ChatScreen() {
             onSubmit={submitHandler}
           >
             <Autocomplete
+              value={message}
+              onChange={(_msg, value) => {
+                value && setMessage(value);
+              }}
               options={["Chatterbot:"]}
               freeSolo
               renderInput={(params) => {

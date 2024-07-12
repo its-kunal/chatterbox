@@ -16,13 +16,16 @@
     "@emotion/styled": "^11.11.5",
     "@fontsource-variable/inter": "^5.0.19",
     "@mui/icons-material": "^5.15.21",
+    "@mui/lab": "5.0.0-alpha.171",
     "@mui/material": "^5.15.21",
+    "@types/slug": "^5.0.8",
     "axios": "^1.7.2",
     "dayjs": "^1.11.11",
     "firebase": "^10.12.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.0",
+    "slug": "^9.1.0",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {

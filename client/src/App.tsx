@@ -3,6 +3,8 @@ import { lazy, Suspense, useEffect } from "react";
 const Auth = lazy(() => import("./screens/auth"));
 const ChatScreen = lazy(() => import("./screens/chat"));
 const Delete = lazy(() => import("./screens/delete"));
+const About = lazy(() => import("./screens/about"));
+const ProfileScreen = lazy(() => import("./screens/profile"));
 import { useFirebaseAuth } from "./firebase/authContext";
 import { Box, CircularProgress, Container } from "@mui/material";
 import Appbar from "./components/navbar/appbar";
@@ -69,6 +71,22 @@ function App() {
           element={
             <Suspense fallback={<Spinner />}>
               <Delete />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <About />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <ProfileScreen />
             </Suspense>
           }
         />
