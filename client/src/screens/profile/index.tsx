@@ -1,17 +1,98 @@
-import { Box, Container, IconButton, Typography } from "@mui/material";
+import {
+  Box,
+  Container,
+  IconButton,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  Switch,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useFirebaseAuth } from "../../firebase/authContext";
 import { createAvatar } from "@dicebear/core";
 import { thumbs } from "@dicebear/collection";
 import slug from "slug";
 import { Edit } from "@mui/icons-material";
+import { getToken } from "firebase/messaging";
+import { messaging } from "../../firebase/config";
+import { useCallback, useEffect, useState } from "react";
+import {
+  getNotificationStatus,
+  updateNotificationStatus,
+} from "../../api/http";
 
 export default function ProfileScreen() {
   const { user } = useFirebaseAuth();
-
+  const theme = useTheme();
   if (!user) return null;
+  const [notificationStatus, setNotificationStatus] = useState(false);
+  const [switchDisabled, setSwitchDisabled] = useState(false);
+
+  const requestPermission = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        const token = await getToken(messaging, {
+          vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+        });
+        localStorage.setItem("message_token", token);
+        // send this token to server
+      } else {
+        alert("You denied the notification request");
+      }
+    } catch (err) {
+      alert("You denied the notification request");
+    }
+  };
+
+  const getNotificationStatusCallback = useCallback(async () => {
+    try {
+      const { status } = await getNotificationStatus();
+      let newNotificationStatus = status === "true" ? true : false;
+      setNotificationStatus(newNotificationStatus);
+    } catch (err) {}
+  }, []);
+
+  const handleNotificationChange = async (
+    _event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSwitchDisabled(true);
+    try {
+      if (Notification.permission !== "granted") requestPermission();
+      const token = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
+      });
+      localStorage.setItem("message_token", token);
+      await updateNotificationStatus({ status: !notificationStatus, token });
+      await getNotificationStatusCallback();
+    } catch (err) {
+    } finally {
+      setSwitchDisabled(false);
+    }
+  };
+
+  useEffect(() => {
+    const debounceCall = setTimeout(() => {
+      getNotificationStatusCallback();
+    }, 500);
+    return () => {
+      clearInterval(debounceCall);
+    };
+  });
 
   return (
-    <Container sx={{ mt: 2 }}>
+    <Container
+      sx={{
+        pt: 2,
+        borderRight: "dashed",
+        borderLeft: "dashed",
+        borderColor: theme.palette.grey["200"],
+        flex: 1,
+      }}
+      maxWidth="sm"
+    >
       {/* section for user avatar and name */}
       <Box
         sx={{
@@ -25,9 +106,9 @@ export default function ProfileScreen() {
         <Box
           sx={{
             height: { xs: 75, md: 100 },
-            borderRadius: "100%",
-            border: 1,
+            borderRadius: theme.shape.borderRadius,
             aspectRatio: 1,
+            overflow: "hidden",
           }}
         >
           {(() => {
@@ -39,7 +120,7 @@ export default function ProfileScreen() {
                 src={avatarUri}
                 height={"100%"}
                 width={"100%"}
-                style={{ aspectRatio: 1, borderRadius: "100%" }}
+                style={{ aspectRatio: 1 }}
               />
             );
           })()}
@@ -56,7 +137,16 @@ export default function ProfileScreen() {
               width: "100%",
             })}
           >
-            <Typography>{slug(user.displayName || "")}</Typography>
+            <Typography
+              sx={{
+                fontSize: {
+                  xs: theme.typography.caption.fontSize,
+                  md: theme.typography.body1.fontSize,
+                },
+              }}
+            >
+              {slug(user.displayName || "")}
+            </Typography>
           </Container>
         </Box>
         <Box>
@@ -65,6 +155,18 @@ export default function ProfileScreen() {
           </IconButton>
         </Box>
       </Box>
+      <List>
+        <ListItem>
+          <ListItemText primary={"Allow Notifications"} />
+          <ListItemSecondaryAction>
+            <Switch
+              onChange={handleNotificationChange}
+              disabled={switchDisabled}
+              checked={notificationStatus}
+            />
+          </ListItemSecondaryAction>
+        </ListItem>
+      </List>
     </Container>
   );
 }

@@ -13,6 +13,7 @@ const authMiddleware = async (
     const decodedToken = await auth.verifyIdToken(token);
     const user = await auth.getUser(decodedToken.uid);
     req.headers.username = user.displayName;
+    req.headers.uid = user.uid;
     next();
   } catch (err) {
     return res.status(403).send("Forbidden");

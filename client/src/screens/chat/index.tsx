@@ -54,6 +54,7 @@ export default function ChatScreen() {
   const listRef = useRef<HTMLUListElement>(null);
 
   const [message, setMessage] = useState<string>("");
+  const [messageBoxDisabled, setMessageBoxDisabled] = useState(false);
 
   const messageRecieveHandler = (message: string) => {
     const chat = JSON.parse(message) as unknown as Chat;
@@ -94,13 +95,19 @@ export default function ChatScreen() {
 
   const submitHandler: ReactEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
-    if (message === "") {
-      alert("Please enter a message");
-      return;
+    try {
+      setMessageBoxDisabled(true);
+      if (message === "") {
+        alert("Please enter a message");
+        return;
+      }
+      socket.emit("message:send", message);
+      e.currentTarget.reset();
+      setMessage("");
+    } catch (err) {
+    } finally {
+      setMessageBoxDisabled(false);
     }
-    socket.emit("message:send", message);
-    e.currentTarget.reset();
-    setMessage("");
   };
 
   useEffect(() => {
@@ -207,9 +214,15 @@ export default function ChatScreen() {
             onSubmit={submitHandler}
           >
             <Autocomplete
+              disabled={messageBoxDisabled}
               value={message}
-              onChange={(_msg, value) => {
-                value && setMessage(value);
+              onInputChange={(e) => {
+                try {
+                  let newString;
+                  // @ts-ignore
+                  e.target && (newString = e.target.value || "");
+                  setMessage(newString);
+                } catch (err) {}
               }}
               options={["Chatterbot:"]}
               freeSolo

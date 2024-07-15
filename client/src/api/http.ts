@@ -88,4 +88,39 @@ async function deleteChats() {
   return data;
 }
 
-export { loginUser, signupUser, lastChats, deleteChats };
+interface NotificationResponseType {
+  status: string;
+}
+
+async function getNotificationStatus() {
+  const { data } = await axiosInstance.get<NotificationResponseType>(
+    "/profile/notify/status"
+  );
+  return data;
+}
+
+interface UpdateNotificationPayload {
+  status: boolean;
+  token: string;
+}
+
+interface UpdateNotificationResponseType {
+  message: string;
+}
+
+async function updateNotificationStatus(payload: UpdateNotificationPayload) {
+  const { data } = await axiosInstance.post<UpdateNotificationResponseType>(
+    "/profile/notify",
+    payload
+  );
+  return data;
+}
+
+export {
+  loginUser,
+  signupUser,
+  lastChats,
+  deleteChats,
+  getNotificationStatus,
+  updateNotificationStatus,
+};

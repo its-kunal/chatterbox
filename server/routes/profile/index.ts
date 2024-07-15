@@ -1,47 +1,44 @@
 import { Router } from "express";
-import { sign } from "jsonwebtoken";
-import { createHash } from "node:crypto";
-import dotenv from "dotenv";
-import { redis } from "@/db";
-import { USER } from "@/config";
-
-dotenv.config();
-
-const SECRET = process.env.SECRET || "";
+import { notificationChannelKey, redis, userNotificationChannel } from "@/db";
+import { authMiddleware } from "@/middleware/auth";
+import { messaging } from "@/firebase";
 
 const router = Router();
 
+router.use(authMiddleware);
 
-// signup
-router.post("/signup", async (req, res) => {
-  const hash = createHash("sha256");
-  const { username, password } = req.body;
-  if (!(username || password))
-    return res.json({ message: "Username and password are required" });
-  hash.update(password);
-  const hashPassword = hash.digest("hex");
-  if (await redis.get(`${USER}:${username}`))
-    return res.json({ message: "Username already exists" });
-  await redis.set(`${USER}:${username}`, hashPassword);
-  const token = sign({ username }, SECRET, { expiresIn: "3h" });
-  return res.json({ message: "User created successfully", token });
+// get the current status of a user
+/*
+listening notifications or not
+uid
+*/
+router.get("/notify/status", async (req, res) => {
+  const uid = req.headers.uid as string;
+  const myNotificationChannel = userNotificationChannel(uid);
+  const status = await redis.get(`${myNotificationChannel}:status`);
+  if (status === null) {
+    await redis.set(`${myNotificationChannel}:status`, "false");
+  }
+  let newStatus = (await redis.get(`${myNotificationChannel}:status`)) || "";
+  return res.json({ status: newStatus });
 });
 
-// login
-router.post("/login", async (req, res) => {
-  const hash = createHash("sha256");
-  const { username, password } = req.body;
-  if (!(username || password))
-    return res.json({ message: "Username and password are required" });
-  const authorizedUser = await redis.get(`${USER}:${username}`);
-  if (!authorizedUser) return res.json({ message: "User not found" });
-  hash.update(password);
-  const hashPassword = hash.digest("hex");
-  if (hashPassword === authorizedUser) {
-    const token = sign({ username }, SECRET, { expiresIn: "3h" });
-    return res.json({ message: "Login successful", token });
+// post request to change notifications
+/*
+uid, isListening, token
+*/
+
+router.post("/notify", async (req, res) => {
+  const uid = req.headers.uid as string;
+  const myNotificationChannel = userNotificationChannel(uid);
+  const { status, token } = req.body;
+  await redis.set(`${myNotificationChannel}:status`, String(status));
+  if (status === true) {
+    await messaging.subscribeToTopic(token, notificationChannelKey);
+  } else {
+    await messaging.unsubscribeFromTopic(token, notificationChannelKey);
   }
-  return res.json({ message: "Invalid password" });
+  return res.json({ message: "Status Successfully Updated" });
 });
 
 export { router as ProfileRouter };

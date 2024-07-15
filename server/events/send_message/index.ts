@@ -1,11 +1,12 @@
 import { Server, Socket } from "socket.io";
-import { messageChannel, redis } from "@/db";
+import { messageChannel, notificationChannelKey, redis } from "@/db";
 import {
   getTextAfterChatterbot,
   isChatterbotString,
   messageInterpreter,
 } from "@/functions/langchain";
 import { CHATTERBOT } from "@/config";
+import { messaging } from "@/firebase";
 
 async function sendMessage(io: Server, socket: Socket, data: string) {
   const username = socket.handshake.headers.username;
@@ -30,6 +31,10 @@ async function sendMessage(io: Server, socket: Socket, data: string) {
     await redis.lpush("message", messageJSON1);
     await redis.publish(messageChannel, messageJSON1);
   }
+  messaging.sendToTopic(notificationChannelKey, {
+    data: {},
+    notification: { title: "New Message", body: data + " from " + username },
+  });
 }
 
 export default sendMessage;

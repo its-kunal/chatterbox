@@ -7,4 +7,15 @@ const subClient = redis.duplicate();
 
 const messageChannel = "message:channel";
 
-export { redis, subClient, messageChannel };
+const notificationChannelKey = "notify";
+
+const userNotificationChannel = (uid: string) =>
+  `${notificationChannelKey}:${uid}`;
+
+export {
+  redis,
+  subClient,
+  messageChannel,
+  notificationChannelKey,
+  userNotificationChannel,
+};
