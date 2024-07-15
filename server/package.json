@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "concurrently \"rollup -c --watch rollup.config.ts --configPlugin typescript --bundleConfigAsCjs\" \"nodemon dist/index.js\"",
+    "dev": "concurrently \"rollup -c rollup.config.ts --watch --configPlugin typescript --bundleConfigAsCjs\" \"nodemon dist/index.js\"",
     "serve": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier -w .",
