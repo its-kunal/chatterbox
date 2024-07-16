@@ -2,7 +2,7 @@ import { Router } from "express";
 import { sign } from "jsonwebtoken";
 import { createHash } from "node:crypto";
 import dotenv from "dotenv";
-import { redis } from "@/db";
+import { redisClient } from "@/db";
 import { USER } from "@/config";
 
 dotenv.config();
@@ -20,9 +20,9 @@ router.post("/signup", async (req, res) => {
     return res.json({ message: "Username and password are required" });
   hash.update(password);
   const hashPassword = hash.digest("hex");
-  if (await redis.get(`${USER}:${username}`))
+  if (await redisClient.get(`${USER}:${username}`))
     return res.json({ message: "Username already exists" });
-  await redis.set(`${USER}:${username}`, hashPassword);
+  await redisClient.set(`${USER}:${username}`, hashPassword);
   const token = sign({ username }, SECRET, { expiresIn: "3h" });
   return res.json({ message: "User created successfully", token });
 });
@@ -33,7 +33,7 @@ router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   if (!(username || password))
     return res.json({ message: "Username and password are required" });
-  const authorizedUser = await redis.get(`${USER}:${username}`);
+  const authorizedUser = await redisClient.get(`${USER}:${username}`);
   if (!authorizedUser) return res.json({ message: "User not found" });
   hash.update(password);
   const hashPassword = hash.digest("hex");

@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { messageChannel, notificationChannelKey, redis } from "@/db";
+import { messageChannel, notificationChannelKey, redisClient } from "@/db";
 import {
   getTextAfterChatterbot,
   isChatterbotString,
@@ -12,13 +12,13 @@ async function sendMessage(io: Server, socket: Socket, data: string) {
   const username = socket.handshake.headers.username;
   const timestamp = new Date(Date.now()).toISOString();
   const messageJSON = JSON.stringify({ username, data, timestamp });
-  await redis.lpush("message", messageJSON);
-  let listLen = await redis.llen("message");
+  await redisClient.lPush("message", messageJSON);
+  let listLen = await redisClient.lLen("message");
   while (listLen > 25) {
-    await redis.rpop("message");
+    await redisClient.rPop("message");
     listLen--;
   }
-  await redis.publish(messageChannel, messageJSON);
+  await redisClient.publish(messageChannel, messageJSON);
   console.log(messageJSON, " published");
   if (isChatterbotString(data)) {
     const message = getTextAfterChatterbot(data);
@@ -28,8 +28,8 @@ async function sendMessage(io: Server, socket: Socket, data: string) {
       timestamp,
       username: CHATTERBOT,
     });
-    await redis.lpush("message", messageJSON1);
-    await redis.publish(messageChannel, messageJSON1);
+    await redisClient.lPush("message", messageJSON1);
+    await redisClient.publish(messageChannel, messageJSON1);
   }
   messaging.sendToTopic(notificationChannelKey, {
     data: {},

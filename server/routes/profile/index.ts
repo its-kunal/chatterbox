@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { notificationChannelKey, redis, userNotificationChannel } from "@/db";
+import { notificationChannelKey, redisClient, userNotificationChannel } from "@/db";
 import { authMiddleware } from "@/middleware/auth";
 import { messaging } from "@/firebase";
 
@@ -12,14 +12,16 @@ router.use(authMiddleware);
 listening notifications or not
 uid
 */
+
 router.get("/notify/status", async (req, res) => {
   const uid = req.headers.uid as string;
   const myNotificationChannel = userNotificationChannel(uid);
-  const status = await redis.get(`${myNotificationChannel}:status`);
+  const status = await redisClient.get(`${myNotificationChannel}:status`);
   if (status === null) {
-    await redis.set(`${myNotificationChannel}:status`, "false");
+    await redisClient.set(`${myNotificationChannel}:status`, "false");
   }
-  let newStatus = (await redis.get(`${myNotificationChannel}:status`)) || "";
+  let newStatus =
+    (await redisClient.get(`${myNotificationChannel}:status`)) || "";
   return res.json({ status: newStatus });
 });
 
@@ -32,7 +34,7 @@ router.post("/notify", async (req, res) => {
   const uid = req.headers.uid as string;
   const myNotificationChannel = userNotificationChannel(uid);
   const { status, token } = req.body;
-  await redis.set(`${myNotificationChannel}:status`, String(status));
+  await redisClient.set(`${myNotificationChannel}:status`, String(status));
   if (status === true) {
     await messaging.subscribeToTopic(token, notificationChannelKey);
   } else {

@@ -2,7 +2,7 @@ import { ChatRouter } from "@/routes/chat";
 import { AuthRouter as AuthRouter } from "@/routes/auth";
 import express from "express";
 import cors from "cors";
-import { redis } from "@/db";
+import { redisClient } from "@/db";
 import { auth } from "@/firebase";
 import { ProfileRouter } from "@/routes/profile";
 
@@ -18,8 +18,8 @@ app.use("/profile", ProfileRouter);
 
 // error handling
 app.get("/del123", async (req, res) => {
-  await redis.ltrim("message", 0, -1);
-  await redis.del("message");
+  await redisClient.lTrim("message", 0, -1);
+  await redisClient.del("message");
   res.send("done");
 });
 
