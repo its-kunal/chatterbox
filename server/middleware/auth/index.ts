@@ -13,6 +13,8 @@ const authMiddleware = async (
     const decodedToken = await auth.verifyIdToken(token);
     const user = await auth.getUser(decodedToken.uid);
     req.headers.username = user.displayName;
+    if (typeof user.displayName !== "string" || user.displayName === undefined)
+      req.headers.username = "Anonymous";
     req.headers.uid = user.uid;
     next();
   } catch (err) {

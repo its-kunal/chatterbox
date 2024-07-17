@@ -28,6 +28,11 @@ const socketHandler = async (io: Server) => {
         const decodedToken = await auth.verifyIdToken(token);
         const user = await auth.getUser(decodedToken.uid);
         socket.handshake.headers.username = user.displayName;
+        if (
+          typeof user.displayName !== "string" ||
+          user.displayName === undefined
+        )
+          socket.handshake.headers.username = "Anonymous";
         next();
       } catch (err) {
         next(error);

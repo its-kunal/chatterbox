@@ -6,6 +6,7 @@ import {
   setPersistence,
   browserSessionPersistence,
   signInWithPopup,
+  signInAnonymously,
 } from "firebase/auth";
 import { useCallback } from "react";
 import { auth } from "../../firebase/config";
@@ -28,6 +29,15 @@ function Auth() {
       /* empty */
     }
   }, [navigate]);
+  
+  const anonymousSignInHandler = useCallback(async () => {
+    try {
+      await signInAnonymously(auth);
+      navigate("/chat");
+    } catch (_err: unknown) {
+      /* empty */
+    }
+  }, []);
 
   return (
     <Container sx={{ px: 2 }} maxWidth="md">
@@ -53,6 +63,7 @@ function Auth() {
         >
           Sign In Now
         </Button>
+        <Button onClick={anonymousSignInHandler}>Sign In Anonymously</Button>
       </Container>
     </Container>
   );

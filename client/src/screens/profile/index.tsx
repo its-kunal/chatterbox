@@ -113,7 +113,7 @@ export default function ProfileScreen() {
         >
           {(() => {
             const avatarUri = createAvatar(thumbs, {
-              seed: user.displayName || "",
+              seed: user.displayName || "Anonymous",
             }).toDataUri();
             return (
               <img
@@ -127,7 +127,7 @@ export default function ProfileScreen() {
         </Box>
         <Box sx={{ display: "flex", rowGap: 1, flexDirection: "column" }}>
           <Typography variant="h3" sx={{ fontSize: { xs: 24, md: 32 } }}>
-            {user.displayName}
+            {user.displayName || "Anonymous"}
           </Typography>
           <Container
             sx={(theme) => ({
@@ -145,7 +145,7 @@ export default function ProfileScreen() {
                 },
               }}
             >
-              {slug(user.displayName || "")}
+              {slug(user.displayName || "Anonymous")}
             </Typography>
           </Container>
         </Box>
