@@ -13,7 +13,7 @@ import {
   ListItemButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { Close as CloseIcon, Person, VerifiedUser } from "@mui/icons-material";
+import { Close as CloseIcon, Person } from "@mui/icons-material";
 import ChatIcon from "@mui/icons-material/Chat";
 import InfoIcon from "@mui/icons-material/Info";
 import LoginIcon from "@mui/icons-material/Pin";
