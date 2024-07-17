@@ -4,6 +4,9 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const MODEL_NAME = "gemini-1.5-flash";
 
+const COMMAND =
+  "Act as a chat agent and provide the response for the following text. Return the response in string, don't use markdown. can use emojis.";
+
 const model = new ChatVertexAI({
   model: MODEL_NAME,
   temperature: 0,
@@ -14,12 +17,7 @@ interface MessageInterpreterType {
 }
 
 async function messageInterpreter({ message }: MessageInterpreterType) {
-  const messages = [
-    new SystemMessage(
-      "Act as a good assistant and provide the response for following query. Return message in form of string only don't use markdown. Can use emojis."
-    ),
-    new HumanMessage(message),
-  ];
+  const messages = [new SystemMessage(COMMAND), new HumanMessage(message)];
   const parser = new StringOutputParser();
   const result = await model.invoke(messages);
   const response = await parser.invoke(result);
