@@ -1,7 +1,15 @@
 import axios from "axios";
 
+function isLocalhost() {
+  return ["localhost", "127.0.0.1", "192.168.0.104"].includes(
+    window.location.hostname
+  );
+}
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_SERVER_URL,
+  baseURL: isLocalhost()
+    ? import.meta.env.VITE_LOCAL_SERVER_URL
+    : import.meta.env.VITE_SERVER_URL,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Headers":
