@@ -6,33 +6,50 @@ import {
   IconButton,
   InputBase,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { ReactEventHandler, useEffect, useState } from "react";
 import socket from "../../api/socket";
 import ImageUpload from "./ImageUpload";
+import { Close as CloseIcon } from "@mui/icons-material";
 
 import { useChatContext } from "./ChatContext";
 
 const USERS_COUNT_EVENT = "users:count";
 const MESSAGE_SEND_EVENT = "message:send";
+const MESSAGE_SEND_EVENT_2 = "message:send2";
 
 export default function ChatMessageForm() {
   const [userCount, setUserCount] = useState(1);
   const [message, setMessage] = useState<string>("");
   const [messageBoxDisabled, setMessageBoxDisabled] = useState(false);
-  const { isSocketConnected } = useChatContext();
+  const { isSocketConnected, imageContent, setImageContent } = useChatContext();
+
+  const theme = useTheme();
 
   const submitHandler: ReactEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
+    setMessageBoxDisabled(true);
     try {
-      setMessageBoxDisabled(true);
-      if (message === "") {
-        alert("Please enter a message");
-        return;
+      if (imageContent) {
+        socket.emit(
+          MESSAGE_SEND_EVENT_2,
+          JSON.stringify({ kind: "image", data: imageContent })
+        );
+        setImageContent(null);
       }
-      socket.emit(MESSAGE_SEND_EVENT, message);
-      e.currentTarget.reset();
-      setMessage("");
+      if (message) {
+        if (message === "") {
+          alert("Please enter a message");
+          return;
+        }
+        socket.emit(
+          MESSAGE_SEND_EVENT_2,
+          JSON.stringify({ kind: "text", data: message })
+        );
+        e.currentTarget.reset();
+        setMessage("");
+      }
     } catch (err) {
     } finally {
       setMessageBoxDisabled(false);
@@ -120,6 +137,44 @@ export default function ChatMessageForm() {
                   {...params.InputProps}
                   {...rest}
                   sx={{ width: { xs: 210, md: 500 } }}
+                  endAdornment={
+                    imageContent && (
+                      <Box
+                        sx={{
+                          position: "relative",
+                          borderRadius: theme.shape.borderRadius,
+                          overflow: "hidden",
+                          boxShadow: theme.shadows[1],
+                        }}
+                        height={100}
+                        width={100}
+                      >
+                        <img
+                          src={imageContent}
+                          style={{
+                            objectFit: "contain",
+                            height: "100%",
+                            width: "100%",
+                          }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={() => setImageContent(null)}
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            cursor: "pointer",
+                            backgroundColor: "white",
+                            borderRadius: "100%",
+                            zIndex: 10,
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    )
+                  }
                 />
               );
             }}

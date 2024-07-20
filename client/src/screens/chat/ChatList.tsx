@@ -2,18 +2,20 @@ import BotSVG from "../../assets/bot.svg";
 import { thumbs } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import {
+  Box,
   Divider,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
   ListSubheader,
+  useTheme,
 } from "@mui/material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import LocalizedFormat from "dayjs/plugin/localizedFormat";
 import React, { useEffect, useRef, useState } from "react";
-import { Chat, lastChats } from "../../api/http";
+import { ChatV2, lastChats2 } from "../../api/http";
 import socket from "../../api/socket";
 import { useChatContext } from "./ChatContext";
 
@@ -21,8 +23,9 @@ dayjs.extend(relativeTime);
 dayjs.extend(LocalizedFormat);
 
 const MESSAGE_RECEIVE_EVENT = "message:receive";
+const MESSAGE_RECEIVE_EVENT_2 = "message:receive2";
 
-function MyListItemText({ chat }: { chat: Chat }) {
+function MyListItemText({ chat }: { chat: ChatV2 }) {
   const [currentDiff, setCurrentDiff] = useState(dayjs(chat.timestamp).toNow());
   useEffect(() => {
     const myInterval = setInterval(() => {
@@ -36,38 +39,36 @@ function MyListItemText({ chat }: { chat: Chat }) {
     <ListItemText
       title={dayjs(chat.timestamp).format("L LT")}
       primary={chat.data}
-      secondary={currentDiff + " by " + chat.username}
+      secondary={currentDiff + " by " + (chat.user.displayName || "Anonymous")}
     />
   );
 }
 
 export default function ChatList() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<ChatV2[]>([]);
   const listRef = useRef<HTMLUListElement>(null);
   const { isSocketConnected } = useChatContext();
+  const theme = useTheme();
 
   const messageReceiveHandler = (message: string) => {
-    const chat = JSON.parse(message) as unknown as Chat;
-    setChats((prev) => [
-      ...prev,
-      { ...chat, diff: dayjs(chat.timestamp).fromNow() },
-    ]);
+    const chat = JSON.parse(message) as unknown as ChatV2;
+    setChats((prev) => [...prev, chat]);
   };
 
   useEffect(() => {
     if (isSocketConnected) {
-      socket.on(MESSAGE_RECEIVE_EVENT, messageReceiveHandler);
+      socket.on(MESSAGE_RECEIVE_EVENT_2, messageReceiveHandler);
     }
     return () => {
-      socket.off(MESSAGE_RECEIVE_EVENT, messageReceiveHandler);
+      socket.off(MESSAGE_RECEIVE_EVENT_2, messageReceiveHandler);
     };
   }, [isSocketConnected]);
 
   useEffect(() => {
     const debounceCall = setTimeout(async () => {
-      const data = await lastChats();
-      const prevChats: Chat[] = data.map((v) => {
-        const c: Chat = {
+      const data = await lastChats2();
+      const prevChats: ChatV2[] = data.map((v) => {
+        const c: ChatV2 = {
           ...v,
         };
         return c;
@@ -90,13 +91,13 @@ export default function ChatList() {
         return (
           <React.Fragment key={idx}>
             <ListItem key={idx}>
-              <ListItemIcon title={chat.username}>
-                {chat.username === "Chatterbot" ? (
+              <ListItemIcon title={chat.user.displayName || "Anonymous"}>
+                {chat.user.displayName === "Chatterbot" ? (
                   <img src={BotSVG} height={30} width={30} />
                 ) : (
                   (() => {
                     const avatar = createAvatar(thumbs, {
-                      seed: chat.username,
+                      seed: chat.user.displayName || chat.user.uid,
                     });
                     const svg = avatar.toDataUri();
                     return (
@@ -113,7 +114,30 @@ export default function ChatList() {
                   })()
                 )}
               </ListItemIcon>
-              <MyListItemText chat={chat} />
+              {chat.kind === "text" && <MyListItemText chat={chat} />}
+              {chat.kind === "image" && (
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <Box
+                    sx={{
+                      border: 1,
+                      borderRadius: theme.shape.borderRadius,
+                      overflow: "hidden",
+                      maxHeight: "200px",
+                      maxWidth: "250px",
+                    }}
+                  >
+                    <img
+                      src={chat.data}
+                      style={{
+                        objectFit: "contain",
+                        height: "100%",
+                        width: "100%",
+                      }}
+                    />
+                  </Box>
+                  <MyListItemText chat={{ ...chat, data: "" }} />
+                </Box>
+              )}
             </ListItem>
             <Divider />
           </React.Fragment>

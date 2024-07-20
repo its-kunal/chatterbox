@@ -86,8 +86,27 @@ export interface Chat {
   data: string;
 }
 
+export interface ChatV2 {
+  kind: "text" | "image" | "audio";
+  data: string;
+  timestamp: string;
+  user: {
+    displayName?: string;
+    email: string;
+    phoneNumber: string;
+    photoURL: string;
+    providerId: string;
+    uid: string;
+  };
+}
+
 async function lastChats() {
   const { data } = await axiosInstance.get<Array<Chat>>("/chat");
+  return data;
+}
+
+async function lastChats2() {
+  const { data } = await axiosInstance.get<Array<ChatV2>>("/chat/2");
   return data;
 }
 
@@ -128,6 +147,7 @@ export {
   loginUser,
   signupUser,
   lastChats,
+  lastChats2,
   deleteChats,
   getNotificationStatus,
   updateNotificationStatus,
