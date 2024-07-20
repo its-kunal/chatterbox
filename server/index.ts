@@ -11,6 +11,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
     allowedHeaders: ["authorization"],
   },
+  maxHttpBufferSize: 1e7,
 });
 
 socketHandler(io);
