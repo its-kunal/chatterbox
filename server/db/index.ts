@@ -4,7 +4,11 @@ dotenv.config();
 
 const messageChannel = "message:channel";
 
+const chatChannel = "chat:channel";
+
 const notificationChannelKey = "notify";
+
+const CHAT = "CHAT";
 
 const userNotificationChannel = (uid: string) =>
   `${notificationChannelKey}:${uid}`;
@@ -34,4 +38,6 @@ export {
   messageChannel,
   notificationChannelKey,
   userNotificationChannel,
+  CHAT,
+  chatChannel,
 };
