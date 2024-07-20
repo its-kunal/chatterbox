@@ -5,7 +5,7 @@ import { StringOutputParser } from "@langchain/core/output_parsers";
 const MODEL_NAME = "gemini-1.5-flash";
 
 const COMMAND =
-  "Act as a chat agent and provide the response for the following text. Return the response in string, don't use markdown. can use emojis.";
+  "Act as a chat agent and provide the response for the following text. Return the response in simple string only. can use emojis.";
 
 const model = new ChatVertexAI({
   model: MODEL_NAME,
