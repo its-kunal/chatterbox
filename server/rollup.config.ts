@@ -16,6 +16,7 @@ const config: RollupOptions = {
     json(),
     resolve({ preferBuiltins: true }),
   ],
+  external: ["sharp"],
 };
 
 export default config;
