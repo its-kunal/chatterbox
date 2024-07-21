@@ -5,6 +5,7 @@ const ChatScreen = lazy(() => import("./screens/chat"));
 const Delete = lazy(() => import("./screens/delete"));
 const About = lazy(() => import("./screens/about"));
 const ProfileScreen = lazy(() => import("./screens/profile"));
+const HomeScreen = lazy(() => import("./screens/home"));
 import { useFirebaseAuth } from "./firebase/authContext";
 import { Box, CircularProgress, Container } from "@mui/material";
 import Appbar from "./components/navbar/appbar";
@@ -50,6 +51,14 @@ function App() {
     >
       <Appbar />
       <Routes>
+        <Route
+          path="/"
+          element={
+            <Suspense fallback={<Spinner />}>
+              <HomeScreen />
+            </Suspense>
+          }
+        />
         <Route
           path="/auth"
           element={
