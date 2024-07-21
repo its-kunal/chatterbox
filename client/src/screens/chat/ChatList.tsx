@@ -18,6 +18,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChatV2, lastChats2 } from "../../api/http";
 import socket from "../../api/socket";
 import { useChatContext } from "./ChatContext";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 dayjs.extend(relativeTime);
 dayjs.extend(LocalizedFormat);
@@ -38,7 +40,7 @@ function MyListItemText({ chat }: { chat: ChatV2 }) {
   return (
     <ListItemText
       title={dayjs(chat.timestamp).format("L LT")}
-      primary={chat.data}
+      primary={<Markdown remarkPlugins={[remarkGfm]}>{chat.data}</Markdown>}
       secondary={currentDiff + " by " + (chat.user.displayName || "Anonymous")}
     />
   );
