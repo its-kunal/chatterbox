@@ -52,16 +52,23 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
   const user = JSON.parse(userJSON) as UserInfo;
   const timestamp = new Date(Date.now()).toISOString();
   const dataObj: Pick<ChatV2, "kind" | "data"> = JSON.parse(data);
-  console.log(dataObj);
-  try {
-    if (dataObj.kind === "image") {
+  if (dataObj.kind === "image") {
+    try {
+      if (dataObj.data === "") throw new Error("Invalid Image");
       dataObj.data = await compressBase64Image(dataObj.data);
+    } catch (err) {
+      console.log("Image Compression failed");
+      console.log(err);
+      socket.emit("error", "Something went wrong, try again later");
+      return;
     }
-  } catch (err) {
-    console.log("Image Compression failed");
-    console.log(err);
-    socket.emit("error", "Something went wrong, try again later");
-    return;
+  } else if (dataObj.kind === "text") {
+    try {
+      if (dataObj.data === "") throw new Error("Empty message not allowed.");
+    } catch (err:any) {
+      socket.emit("error", err.message);
+      return;
+    }
   }
   let chat: ChatV2 = {
     data: dataObj.data,
@@ -70,17 +77,11 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
     user,
   };
   const chatJSON = JSON.stringify(chat);
-
   await redisClient.lPush(CHAT, chatJSON);
-  let listLen = await redisClient.lLen(CHAT);
-  while (listLen > 25) {
-    await redisClient.rPop(CHAT);
-    listLen--;
-  }
-  const list = await redisClient.lRange(CHAT, 0, 10);
-  console.log(list.length);
   await redisClient.publish(chatChannel, chatJSON);
+  await redisClient.lTrim(CHAT, 0, 10);
   console.log(chatJSON, " published");
+  // call chatterbot
   if (dataObj.kind === "text" && isChatterbotString(dataObj.data)) {
     const subChat = getTextAfterChatterbot(data);
     const response = await messageInterpreter({ message: subChat });
@@ -108,11 +109,22 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
     const chatterbotChatJSON = JSON.stringify(chatterbotChatObj);
     await redisClient.lPush(CHAT, chatterbotChatJSON);
     await redisClient.publish(chatChannel, chatterbotChatJSON);
+  }
+  if (dataObj.kind === "text") {
     messaging.sendToTopic(notificationChannelKey, {
       data: {},
       notification: {
         title: "New Message",
-        body: dataObj.data + " from " + user.displayName || "Anonymous",
+        body: dataObj.data + " from " + (user.displayName || "Anonymous"),
+      },
+    });
+  } else if (dataObj.kind === "image") {
+    messaging.sendToTopic(notificationChannelKey, {
+      data: {},
+      notification: {
+        title: "New Message",
+        body:
+          "An Image has been shared by " + (user.displayName || "Anonymous"),
       },
     });
   }
