@@ -65,7 +65,7 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
   } else if (dataObj.kind === "text") {
     try {
       if (dataObj.data === "") throw new Error("Empty message not allowed.");
-    } catch (err:any) {
+    } catch (err: any) {
       socket.emit("error", err.message);
       return;
     }
@@ -130,5 +130,17 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
   }
 }
 
-export { sendMessage2 };
+function sendMessageEvent2(io: Server, socket: Socket) {
+  socket.on("message:send2", (data) => {
+    sendMessage2(io, socket, data);
+  });
+}
+
+function sendMessageEvent(io: Server, socket: Socket) {
+  socket.on("message:send", (data) => {
+    sendMessage(io, socket, data);
+  });
+}
+
+export { sendMessage2, sendMessageEvent, sendMessageEvent2 };
 export default sendMessage;
