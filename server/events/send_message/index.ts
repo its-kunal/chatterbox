@@ -52,6 +52,7 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
   const user = JSON.parse(userJSON) as UserInfo;
   const timestamp = new Date(Date.now()).toISOString();
   const dataObj: Pick<ChatV2, "kind" | "data"> = JSON.parse(data);
+  if (dataObj.data === "") throw new Error("Empty message not allowed.");
   if (dataObj.kind === "image") {
     try {
       if (dataObj.data === "") throw new Error("Invalid Image");
@@ -110,29 +111,43 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
     await redisClient.lPush(CHAT, chatterbotChatJSON);
     await redisClient.publish(chatChannel, chatterbotChatJSON);
   }
-  if (dataObj.kind === "text") {
-    messaging.sendToTopic(notificationChannelKey, {
-      data: {},
-      notification: {
-        title: "New Message",
-        body: dataObj.data + " from " + (user.displayName || "Anonymous"),
-      },
-    });
-  } else if (dataObj.kind === "image") {
-    messaging.sendToTopic(notificationChannelKey, {
-      data: {},
-      notification: {
-        title: "New Message",
-        body:
-          "An Image has been shared by " + (user.displayName || "Anonymous"),
-      },
-    });
-  }
+  try {
+    if (dataObj.kind === "text") {
+      messaging.sendToTopic(notificationChannelKey, {
+        data: {},
+        notification: {
+          title: "New Message",
+          body: dataObj.data + " from " + (user.displayName || "Anonymous"),
+        },
+      });
+    } else if (dataObj.kind === "image") {
+      messaging.sendToTopic(notificationChannelKey, {
+        data: {},
+        notification: {
+          title: "New Message",
+          body:
+            "An Image has been shared by " + (user.displayName || "Anonymous"),
+        },
+      });
+    } else if (dataObj.kind === "audio") {
+      messaging.sendToTopic(notificationChannelKey, {
+        data: {},
+        notification: {
+          title: "New Message",
+          body:
+            "An Voice Note has been shared by " +
+            (user.displayName || "Anonymous"),
+        },
+      });
+    }
+  } catch {}
 }
 
 function sendMessageEvent2(io: Server, socket: Socket) {
   socket.on("message:send2", (data) => {
-    sendMessage2(io, socket, data);
+    try {
+      sendMessage2(io, socket, data);
+    } catch {}
   });
 }
 

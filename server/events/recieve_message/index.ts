@@ -14,15 +14,17 @@ async function recieveMessage(io: Server) {
 }
 
 async function recieveMessage2(io: Server) {
-  const subscriberListener: Parameters<typeof redisSubClient.subscribe>[1] = (
-    message,
-    channel
-  ) => {
-    if (channel !== chatChannel) return;
-    console.log(message, " message");
-    io.emit("message:receive2", message);
-  };
-  redisSubClient.subscribe(chatChannel, subscriberListener);
+  try {
+    const subscriberListener: Parameters<typeof redisSubClient.subscribe>[1] = (
+      message,
+      channel
+    ) => {
+      if (channel !== chatChannel) return;
+      console.log(message, " message");
+      io.emit("message:receive2", message);
+    };
+    redisSubClient.subscribe(chatChannel, subscriberListener);
+  } catch {}
 }
 
 export { recieveMessage2 };
