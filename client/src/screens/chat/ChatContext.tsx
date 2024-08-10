@@ -6,8 +6,10 @@ interface ChatContextType {
   setSocketConnected: React.Dispatch<React.SetStateAction<boolean>>;
   textContent: string | null;
   imageContent: string | null;
+  audioContent: string | null;
   setTextContent: React.Dispatch<React.SetStateAction<string | null>>;
   setImageContent: React.Dispatch<React.SetStateAction<string | null>>;
+  setAudioContent: React.Dispatch<React.SetStateAction<string | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -21,6 +23,8 @@ const ChatContext = createContext<ChatContextType>({
   setTextContent: () => {},
   loading: true,
   setLoading: () => {},
+  audioContent: null,
+  setAudioContent: () => {},
 });
 
 type ChatContextProviderProps = {
@@ -36,6 +40,7 @@ export default function ChatContextProvider({
 }: ChatContextProviderProps) {
   const [imageContent, setImageContent] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [audioContent, setAudioContent] = useState<string | null>(null);
   const [isSocketConnected, setSocketConnected] = useState(socket.connected);
   const [loading, setLoading] = useState(!socket.connected);
 
@@ -71,6 +76,8 @@ export default function ChatContextProvider({
         setImageContent,
         textContent,
         setTextContent,
+        audioContent,
+        setAudioContent,
         isSocketConnected,
         setSocketConnected,
         loading,

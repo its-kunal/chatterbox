@@ -46,6 +46,17 @@ function MyListItemText({ chat }: { chat: ChatV2 }) {
   );
 }
 
+function MyListItemAudio({ chat }: { chat: ChatV2 }) {
+  
+  const audioSrc = `data:audio/webm;base64,${chat.data}`;
+  // console.log(audioURL);
+  return (
+    <Box>
+      <audio controls src={audioSrc}></audio>
+    </Box>
+  );
+}
+
 export default function ChatList() {
   const [chats, setChats] = useState<ChatV2[]>([]);
   const listRef = useRef<HTMLUListElement>(null);
@@ -131,12 +142,18 @@ export default function ChatList() {
                     <img
                       src={chat.data}
                       style={{
-                        objectFit: "contain",
+                        objectFit: "cover",
                         height: "100%",
                         width: "100%",
                       }}
                     />
                   </Box>
+                  <MyListItemText chat={{ ...chat, data: "" }} />
+                </Box>
+              )}
+              {chat.kind === "audio" && (
+                <Box sx={{ display: "flex", flexDirection: "column" }}>
+                  <MyListItemAudio chat={chat} />
                   <MyListItemText chat={{ ...chat, data: "" }} />
                 </Box>
               )}

@@ -5,27 +5,41 @@ import {
   Container,
   IconButton,
   InputBase,
+  Menu,
+  MenuItem,
   Typography,
   useTheme,
 } from "@mui/material";
 import { ReactEventHandler, useEffect, useState } from "react";
 import socket from "../../api/socket";
 import ImageUpload from "./ImageUpload";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { Close as CloseIcon, VoiceChat } from "@mui/icons-material";
 
 import { useChatContext } from "./ChatContext";
+import AudioRecorder from "./AudioRecorder";
+import AddIcon from "@mui/icons-material/Add";
 
 const USERS_COUNT_EVENT = "users:count";
-const MESSAGE_SEND_EVENT = "message:send";
+// const MESSAGE_SEND_EVENT = "message:send";
 const MESSAGE_SEND_EVENT_2 = "message:send2";
 
 export default function ChatMessageForm() {
   const [userCount, setUserCount] = useState(1);
   const [message, setMessage] = useState<string>("");
   const [messageBoxDisabled, setMessageBoxDisabled] = useState(false);
-  const { isSocketConnected, imageContent, setImageContent } = useChatContext();
-
+  const {
+    isSocketConnected,
+    imageContent,
+    setImageContent,
+    audioContent,
+    setAudioContent,
+  } = useChatContext();
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const theme = useTheme();
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+  };
 
   const submitHandler: ReactEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -49,6 +63,19 @@ export default function ChatMessageForm() {
         );
         e.currentTarget.reset();
         setMessage("");
+      }
+      if (audioContent) {
+        const audioBlob = new Blob([audioContent], { type: "audio/webm" });
+        if (audioBlob.size > 1e7) {
+          alert("Audio file is too large");
+          setAudioContent(null);
+          return;
+        }
+        socket.emit(
+          MESSAGE_SEND_EVENT_2,
+          JSON.stringify({ kind: "audio", data: audioContent })
+        );
+        setAudioContent(null);
       }
     } catch (err) {
     } finally {
@@ -136,53 +163,118 @@ export default function ChatMessageForm() {
                   name="message"
                   {...params.InputProps}
                   {...rest}
-                  sx={{ width: { xs: 210, md: 500 } }}
+                  sx={{ width: { xs: 190, md: 480 } }}
                   endAdornment={
-                    imageContent && (
-                      <Box
-                        sx={{
-                          position: "relative",
-                          borderRadius: theme.shape.borderRadius,
-                          overflow: "hidden",
-                          boxShadow: theme.shadows[1],
-                        }}
-                        height={100}
-                        width={100}
-                      >
-                        <img
-                          src={imageContent}
-                          style={{
-                            objectFit: "contain",
-                            height: "100%",
-                            width: "100%",
-                          }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => setImageContent(null)}
+                    <>
+                      {imageContent && (
+                        <Box
                           sx={{
-                            position: "absolute",
-                            top: 0,
-                            right: 0,
-                            cursor: "pointer",
-                            backgroundColor: "white",
-                            borderRadius: "100%",
-                            zIndex: 10,
+                            position: "relative",
+                            borderRadius: theme.shape.borderRadius,
+                            overflow: "hidden",
+                            boxShadow: theme.shadows[1],
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
                           }}
+                          height={100}
+                          width={100}
                         >
-                          <CloseIcon />
-                        </IconButton>
-                      </Box>
-                    )
+                          <img
+                            src={imageContent}
+                            style={{
+                              objectFit: "contain",
+                              height: "80%",
+                              width: "80%",
+                            }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => setImageContent(null)}
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+                              cursor: "pointer",
+                              backgroundColor: "white",
+                              borderRadius: "100%",
+                              zIndex: 10,
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                      {audioContent && (
+                        <Box
+                          sx={{
+                            position: "relative",
+                            borderRadius: theme.shape.borderRadius,
+                            overflow: "hidden",
+                            boxShadow: theme.shadows[1],
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                          height={50}
+                          width={50}
+                        >
+                          <VoiceChat sx={{ height: "80%", width: "80%" }} />
+                          <IconButton
+                            size="small"
+                            onClick={() => setAudioContent(null)}
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              right: 0,
+                              cursor: "pointer",
+
+                              borderRadius: "100%",
+                              zIndex: 10,
+                              "&:hover": {
+                                backgroundColor: "white",
+                              },
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </>
                   }
                 />
               );
             }}
           />
+          <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
+            <AddIcon color="primary" />
+          </IconButton>
+          <Menu
+            anchorEl={menuAnchor}
+            open={!!menuAnchor}
+            onClose={handleCloseMenu}
+            anchorOrigin={{
+              vertical: "top",
+              horizontal: "center",
+            }}
+            transformOrigin={{
+              vertical: "bottom",
+              horizontal: "center",
+            }}
+          >
+            <MenuItem>
+              <ImageUpload />
+            </MenuItem>
+            <MenuItem>
+              <AudioRecorder />
+            </MenuItem>
+          </Menu>
+
+          {/* <ImageUpload />
+          <AudioRecorder /> */}
           <IconButton type="submit" disabled={!isSocketConnected}>
             <SendIcon color="primary" />
           </IconButton>
-          <ImageUpload />
         </Box>
       </Box>
     </Box>
