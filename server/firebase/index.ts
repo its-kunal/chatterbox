@@ -6,13 +6,14 @@ import { getMessaging } from "firebase-admin/messaging";
 
 dotenv.config();
 
-const ENV = process.env.ENV;
+const CERT_PATH = process.env.CERT_PATH;
 
 const app = initializeApp({
-  ...(ENV && {
-    credential: cert("C:/Users/Kunal/Downloads/kunal-d1c1e-70924d775881.json"),
+  ...(CERT_PATH && {
+    credential: cert(CERT_PATH),
   }),
 });
+
 const auth = getAuth(app);
 const messaging = getMessaging(app);
 
