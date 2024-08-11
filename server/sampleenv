@@ -1,0 +1,8 @@
+# rename this file to .env
+PORT=
+REDIS_URI=
+REDIS_PASSWORD=
+REDIS_HOST=
+SECRET=
+ENV=
+CERT_PATH=
