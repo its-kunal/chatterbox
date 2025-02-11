@@ -24,10 +24,12 @@ jobs:
       NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
-      - run: cd client && npm i && npm run build
+      - run: cd client && npm i
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KUNAL_D1C1E }}
           projectId: ${{ secrets.PROJECT_ID }}
-          entryPoint: client/dist
+          entryPoint: client
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
