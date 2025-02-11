@@ -1,5 +1,5 @@
 import { Button, Container, Divider, Typography } from "@mui/material";
-import HeroSvg from "../../assets/hero.svg";
+import HeroSvg from "./HeroSvg.svg";
 import { Google } from "@mui/icons-material";
 import {
   GoogleAuthProvider,
@@ -29,7 +29,7 @@ function Auth() {
       /* empty */
     }
   }, [navigate]);
-  
+
   const anonymousSignInHandler = useCallback(async () => {
     try {
       await signInAnonymously(auth);
@@ -55,7 +55,7 @@ function Auth() {
           my: 2,
         }}
       >
-        <img src={HeroSvg} height={300} />
+        <HeroSvg />
         <Button
           startIcon={<Google />}
           variant="contained"

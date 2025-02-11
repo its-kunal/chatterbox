@@ -24,7 +24,7 @@ import remarkGfm from "remark-gfm";
 dayjs.extend(relativeTime);
 dayjs.extend(LocalizedFormat);
 
-const MESSAGE_RECEIVE_EVENT = "message:receive";
+// const MESSAGE_RECEIVE_EVENT = "message:receive";
 const MESSAGE_RECEIVE_EVENT_2 = "message:receive2";
 
 function MyListItemText({ chat }: { chat: ChatV2 }) {

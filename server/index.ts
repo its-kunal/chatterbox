@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { PORT } from "@/config";
 import { ExpressApp, socketHandler } from "@/app";
-import { redisClient, redisSubClient } from "./db";
+import { redisClient, redisSubClient } from "@/db";
 
 const server = createServer(ExpressApp);
 const io = new Server(server, {
