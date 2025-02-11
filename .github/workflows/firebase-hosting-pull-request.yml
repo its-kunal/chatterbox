@@ -21,7 +21,6 @@ jobs:
       VITE_APP_ID: ${{ vars.VITE_APP_ID }}
       VITE_MEASUREMENT_ID: ${{ vars.VITE_MEASUREMENT_ID }}
       VITE_FIREBASE_VAPID_KEY: ${{ vars.VITE_FIREBASE_VAPID_KEY }}
-      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
       - run: cd client && npm i
