@@ -7,8 +7,6 @@ on:
   pull_request:
     paths:
       - 'client/**' # Only trigger on changes in the client directory
-    branches:
-      - main # Or your main branch name
   workflow_dispatch: # Allows manual triggering
 
 permissions:
