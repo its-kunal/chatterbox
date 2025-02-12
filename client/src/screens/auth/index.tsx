@@ -44,7 +44,6 @@ function Auth() {
       <Typography variant="h3" textAlign={"center"} mt={2}>
         Welcome to Chatterbox
       </Typography>
-      <Box sx={{ height: 1 }}></Box>
       <Container
         sx={{
           display: "flex",
@@ -52,7 +51,8 @@ function Auth() {
           alignItems: "center",
           flexDirection: "column",
           rowGap: 2,
-          my: 2,
+          my: 1,
+          maxHeight: 600
         }}
       >
         <HeroSvg />
