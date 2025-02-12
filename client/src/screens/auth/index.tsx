@@ -1,4 +1,4 @@
-import { Button, Container, Divider, Typography } from "@mui/material";
+import { Box, Button, Container, Divider, Typography } from "@mui/material";
 import HeroSvg from "./HeroSvg.svg";
 import { Google } from "@mui/icons-material";
 import {
@@ -44,7 +44,7 @@ function Auth() {
       <Typography variant="h3" textAlign={"center"} mt={2}>
         Welcome to Chatterbox
       </Typography>
-      <Divider sx={{ my: 1 }} />
+      <Box sx={{ height: 1 }}></Box>
       <Container
         sx={{
           display: "flex",
