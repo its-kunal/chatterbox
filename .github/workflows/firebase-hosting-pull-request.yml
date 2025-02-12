@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - 'client/**' # Only trigger on changes in the client directory
+      - '.github/**'
   workflow_dispatch: # Allows manual triggering
 
 permissions:
@@ -33,7 +34,7 @@ jobs:
         with:
           path: client # Checkout *only* the client directory
       - name: Install Dependencies
-        working-directory: client # Set working directory for npm install
+        # working-directory: client # Set working directory for npm install
         run: npm i
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
