@@ -6,12 +6,14 @@ on:
   push:
     branches:
       - main
+    paths: 
+      - 'client/**'
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     env:
       VITE_SERVER_URL: ${{ vars.VITE_SERVER_URL}}
-      VITE_API_KEY: ${{ vars.VITE_API_KEY}}
+      VITE_API_KEY: ${{ vars.VITE_API_KEY }}
       VITE_AUTH_DOMAIN: ${{ vars.VITE_AUTH_DOMAIN }}
       VITE_PROJECT_ID: ${{ vars.VITE_PROJECT_ID }}
       VITE_STORAGE_BUCKET: ${{ vars.VITE_STORAGE_BUCKET }}
@@ -21,7 +23,28 @@ jobs:
       VITE_FIREBASE_VAPID_KEY: ${{ vars.VITE_FIREBASE_VAPID_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - run: cd client && npm install
+        with:
+          sparse-checkout: client
+      - name: Caching Deps
+        id: cache-npm-frontend
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        name: List the state of node modules
+        continue-on-error: true
+        working-directory: client
+        run: npm list
+      - name: Install Deps
+        working-directory: client
+        run: npm install
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
