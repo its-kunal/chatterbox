@@ -7,7 +7,6 @@ on:
   pull_request:
     paths:
       - 'client/**' # Only trigger on changes in the client directory
-      - '.github/**'
   workflow_dispatch: # Allows manual triggering
 
 permissions:

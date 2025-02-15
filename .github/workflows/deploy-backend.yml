@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "server/**"
+      - ".github/**"
   workflow_dispatch:
 
 jobs:
