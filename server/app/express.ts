@@ -37,4 +37,8 @@ app.get("/user", async (req, res) => {
   res.send("done");
 });
 
+app.get("/hello", async (req, res) => {
+  res.send("Hello from chatterbox!");
+});
+
 export { app };
