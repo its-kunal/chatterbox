@@ -1,4 +1,4 @@
-import { Box, Button, Container, Divider, Typography } from "@mui/material";
+import { Button, Container, Typography } from "@mui/material";
 import HeroSvg from "./HeroSvg.svg";
 import { Google } from "@mui/icons-material";
 import {
@@ -52,7 +52,7 @@ function Auth() {
           flexDirection: "column",
           rowGap: 2,
           my: 1,
-          maxHeight: 600
+          maxHeight: 600,
         }}
       >
         <HeroSvg />
