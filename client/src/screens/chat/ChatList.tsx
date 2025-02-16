@@ -47,7 +47,6 @@ function MyListItemText({ chat }: { chat: ChatV2 }) {
 }
 
 function MyListItemAudio({ chat }: { chat: ChatV2 }) {
-  
   const audioSrc = `data:audio/webm;base64,${chat.data}`;
   // console.log(audioURL);
   return (
@@ -106,7 +105,7 @@ export default function ChatList() {
             <ListItem key={idx}>
               <ListItemIcon title={chat.user.displayName || "Anonymous"}>
                 {chat.user.displayName === "Chatterbot" ? (
-                  <img src={BotSVG} height={30} width={30} />
+                  <BotSVG height={30} width={30} />
                 ) : (
                   (() => {
                     const avatar = createAvatar(thumbs, {
