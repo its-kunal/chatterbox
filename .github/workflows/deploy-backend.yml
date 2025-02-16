@@ -2,6 +2,7 @@ name: Build and Deploy to Google Cloud Run
 
 on:
   workflow_dispatch:
+
   pull_request:
     paths:
       - "server/**"
@@ -38,17 +39,5 @@ jobs:
           gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
       - name: "Build and push container"
         run: |-
-          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.APP }}/${{ env.APP }}:${{ github.sha }}" ./server
-          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.APP }}/${{ env.APP }}:${{ github.sha }}"
-      - name: "Create release name"
-        run: |-
-          echo "RELEASE_NAME=${{ env.APP }}-${GITHUB_SHA::7}-${GITHUB_RUN_NUMBER}" >> ${GITHUB_ENV}
-      - name: "Cloud Run Release"
-        id: "deploy"
-        uses: "google-github-actions/deploy-cloudrun@v2"
-        with:
-          service: "chatterbox-kunal-staging"
-          image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.APP }}/${{ env.APP }}:${{ github.sha }}
-          region: ${{ env.GAR_LOCATION }}
-      - name: "Use output"
-        run: 'curl "${{ steps.deploy.outputs.url }}"' 
+          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.APP }}/${{ env.APP }}:staging" ./server
+          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.APP }}/${{ env.APP }}:staging"
