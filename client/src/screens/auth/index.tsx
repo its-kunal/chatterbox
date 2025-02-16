@@ -1,5 +1,5 @@
 import { Button, Container, Typography } from "@mui/material";
-import HeroSvg from "./HeroSvg.svg";
+import HeroSvg from "./HeroSvg.svg?react";
 import { Google } from "@mui/icons-material";
 import {
   GoogleAuthProvider,

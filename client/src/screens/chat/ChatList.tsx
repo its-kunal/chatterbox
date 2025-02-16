@@ -1,4 +1,4 @@
-import BotSVG from "../../assets/bot.svg";
+import BotSVG from "../../assets/bot.svg?react";
 import { thumbs } from "@dicebear/collection";
 import { createAvatar } from "@dicebear/core";
 import {
