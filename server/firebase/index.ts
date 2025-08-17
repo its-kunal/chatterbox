@@ -1,7 +1,7 @@
-import { initializeApp, cert } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
+import { cert, initializeApp } from "firebase-admin/app";
 
 import dotenv from "dotenv";
+import { getAuth } from "firebase-admin/auth";
 import { getMessaging } from "firebase-admin/messaging";
 
 dotenv.config();

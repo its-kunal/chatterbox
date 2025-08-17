@@ -1,4 +1,3 @@
-import { Server, Socket } from "socket.io";
 import {
   CHAT,
   chatChannel,
@@ -6,16 +5,18 @@ import {
   notificationChannelKey,
   redisClient,
 } from "@/db";
+import { Server, Socket } from "socket.io";
 import {
   getTextAfterChatterbot,
   isChatterbotString,
   messageInterpreter,
 } from "@/functions/langchain";
+
 import { CHATTERBOT } from "@/config";
-import { messaging } from "@/firebase";
 import { ChatV2 } from "@/types/chat";
-import { compressBase64Image } from "@/functions/sharp";
 import { UserInfo } from "firebase-admin/auth";
+import { compressBase64Image } from "@/functions/sharp";
+import { messaging } from "@/firebase";
 
 async function sendMessage(io: Server, socket: Socket, data: string) {
   const username = socket.handshake.headers.username;
@@ -40,9 +41,11 @@ async function sendMessage(io: Server, socket: Socket, data: string) {
     await redisClient.lPush("message", messageJSON1);
     await redisClient.publish(messageChannel, messageJSON1);
   }
-  messaging.sendToTopic(notificationChannelKey, {
+
+  messaging.send({
     data: {},
     notification: { title: "New Message", body: data + " from " + username },
+    topic: notificationChannelKey,
   });
 }
 
@@ -113,24 +116,26 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
   }
   try {
     if (dataObj.kind === "text") {
-      messaging.sendToTopic(notificationChannelKey, {
+      messaging.send({
         data: {},
         notification: {
           title: "New Message",
           body: dataObj.data + " from " + (user.displayName || "Anonymous"),
         },
+        topic: notificationChannelKey,
       });
     } else if (dataObj.kind === "image") {
-      messaging.sendToTopic(notificationChannelKey, {
+      messaging.send({
         data: {},
         notification: {
           title: "New Message",
           body:
             "An Image has been shared by " + (user.displayName || "Anonymous"),
         },
+        topic: notificationChannelKey,
       });
     } else if (dataObj.kind === "audio") {
-      messaging.sendToTopic(notificationChannelKey, {
+      messaging.send({
         data: {},
         notification: {
           title: "New Message",
@@ -138,9 +143,12 @@ async function sendMessage2(io: Server, socket: Socket, data: string) {
             "An Voice Note has been shared by " +
             (user.displayName || "Anonymous"),
         },
+        topic: notificationChannelKey,
       });
     }
-  } catch {}
+  } catch (err) {
+    console.log("Error sending notification", JSON.stringify(err));
+  }
 }
 
 function sendMessageEvent2(io: Server, socket: Socket) {
