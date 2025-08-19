@@ -4,6 +4,9 @@ This project implements a real-time communication platform that supports image, 
 
 Check the application live here - https://chatterbox-kunal.web.app/
 
+## Demo Video
+[![Watch the video](http://img.youtube.com/vi/uIM5_hsWooI/0.jpg)](https://www.youtube.com/watch?v=uIM5_hsWooI)
+
 ## Features
 
 - **Real-time Communication**:
